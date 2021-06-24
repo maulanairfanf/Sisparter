@@ -51,6 +51,82 @@ def upload_file_handler():
     # aktifkan kembali state button download dan upload.
     # change_file_updn_btn_state("active")
 
+def download_file_handler():
+
+
+    # handler ketika melakukan refresh folder server.
+    def refresh_directory_handler():
+        
+        # judul untuk tiap message.
+        title = "Server Directory"
+
+        # matikan button untuk download file.
+        
+        # coba untuk get list directory dari server.
+        try:    dir_list, exit_status = SERVER.get_dir_list()
+        except: exit_status = -1
+
+        # jika tidak ada error maka tampilkan seluruh file.
+        if exit_status == 0:
+            
+            # aktifkan state dir list dan hapus isinya.
+            txt_dir_list["state"] = "normal"
+            txt_dir_list.delete("1.0", "end")
+            
+            # tulis setiap file di dir list.
+            txt_dir_list.insert("end", "File List:\n")
+            for file in dir_list: txt_dir_list.insert("end", f"- {file}\n")
+            
+            # matikan kembali state dir list dan aktifkan tombol download.
+            txt_dir_list["state"] = "disabled"
+            btn_downloads["state"] = "active"
+
+        # directory dari server kosong.
+        elif exit_status == 1: messagebox.showwarning(title, "There are no file stored on the server yet.")
+        
+        # error lain.
+        else: messagebox.showwarning(title, f"Can't connect with server. Try checking the server first or contact server admin.")
+    
+    def download_handler():
+
+        # judul untuk tiap message.
+        title = "Download File"
+        
+        # get nama file yang mau di download.
+        file_name = txt_file_name.get("1.0", "end").strip()
+
+        # make sure client download file yang benar.
+        if messagebox.askyesno(title, f"Are you sure you want to download '{file_name}'?"):
+
+            # matikan state button download.
+            btn_downloads["state"] = "disabled"
+            
+            # coba untuk download file.
+            try:    file, exit_status = SERVER.download_file(file_name, USER_DATA)
+            except: exit_status = -1
+
+            # simpan file ke folder client.
+            if exit_status == 0:
+                
+                # get path folder dan gabungkan dengan nama file.
+                dir_path = filedialog.askdirectory()
+                ful_path = os.path.join(dir_path, file_name)
+                
+                # simpan file.
+                with open(ful_path, "wb") as f: f.write(file.data)
+                
+                # tampilkan pesan bahwa file sudah di download.
+                messagebox.showinfo(title, f"'{file_name}' successfully downloaded.")
+            
+            # file tidak ditemukan di server.
+            elif exit_status == 1: messagebox.showwarning(title, f"Can't download '{file_name}' because a file with that name is not exists. Please specify a different name.")
+            
+            # error yang lain.
+            else: messagebox.showwarning(title, f"Can't connect with server. Try checking the server first or contact server admin.")
+            
+        # aktifkan kembali state button download.
+        btn_downloads["state"] = "active"
+
 def uploadDownload():
     print("1.Upload File \n2.Download File")
     print("pilih : ")
