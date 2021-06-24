@@ -3,7 +3,7 @@ import xmlrpc.client, tkinter, socket, os
 from tkinter import filedialog, messagebox
 
 # Init server_IP
-SERVER_IP = "26.247.36.164"
+SERVER_IP = "192.168.100.7"
 PORT      = "8080"
 
 # Init server proxy.

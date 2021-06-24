@@ -4,7 +4,7 @@ from datetime import datetime
 
 PORT     = 8080
 HOSTNAME = socket.gethostname()
-LOCAL_IP = "26.57.75.24"
+LOCAL_IP = "192.168.100.7"
 
 # server selalu aktif.
 def is_active(): return True
