@@ -1,70 +1,84 @@
+# import library
 import xmlrpc.client, socket, os
 from xmlrpc.server import SimpleXMLRPCServer
 from datetime import datetime
 
-PORT     = 8080
+# init hostname, local ip & port
 HOSTNAME = socket.gethostname()
-LOCAL_IP = "192.168.100.7"
+LOCAL_IP = "192.168.1.16"
+PORT     = 8080
 
-# server selalu aktif.
-def is_active(): return True
+# function upload file
+def handleUploadFile(file, fileName, USER):
 
-def upload_file(file, file_name, USER_DATA):
+    # check if file not exist on server
+    if not fileName in os.listdir("storage"):
 
-    # cek apakah file belum ada di data.
-    if not file_name in os.listdir("data"):
+        # update user input with status, filename and user
+        userInput("Upload-File", fileName, USER)
 
-        update_user_activity("upload", file_name, USER_DATA)
-
-        # upload file ke server.
-        with open(os.path.join("data", file_name), "wb") as f:
+        # upload file to server.
+        with open(os.path.join("storage", fileName), "wb") as f:
             f.write(file.data)
             
-            return 0 # exit status 0 apabila upload berhasil.
+            # exit with status 200 if upload success.
+            return 200
 
-    return 1 # exit status 1 apabila file sudah ada.
+    # exit with status 400 if file exist.
+    return 400
 
-def download_file(file_name, USER_DATA):
+def handleGetFiles():
 
-    # cek apakah file ada di data.
-    if file_name in os.listdir("data"):
+    # get files on the server
+    files = os.listdir("storage")
+    
+    # if files is empty, exist with status 1 and return none
+    if len(files) == 0:
+        return None, 400
+    
+    # if files is exist, exit with status 0 and return files
+    return files, 200
 
-        update_user_activity("download", file_name, USER_DATA)
+# function download file
+def handleDownloadFile(fileName, USER):
 
-        # ubah file ke bentuk biner dan return file-nya.
-        with open(os.path.join("data", file_name), "rb") as f:
+    # check if file is exist on server.
+    if fileName in os.listdir("storage"):
+
+        # update user input with status, filename and user
+        userInput("Download-File", fileName, USER)
+
+        # change file to biner & return file to download
+        with open(os.path.join("storage", fileName), "rb") as f:
             file = f.read()
             file = xmlrpc.client.Binary(file)
             
-            return file, 0 # exit status 0 apabila download berhasil.
+            # exit with status 0 if file exist & return file to download
+            return file, 200
     
-    return None, 1 # exit status 1 apabila file tidak ada.
+    # exit with status 1 if file is not exist and return none 
+    return None, 400
 
-def get_dir_list():
+# function update user input
+def userInput(userInput, fileName, USER):
+    # init current time with present
+    currentTime = datetime.now().strftime("%d/%m/%Y %H:%M:%S")
 
-    # get list dari data yang dimiliki server.
-    dir_list = os.listdir("data")
-    
-    # jika isi folder-nya kosong maka exit status-nya 1.
-    if len(dir_list) == 0:
-        return None, 1
-    
-    return dir_list, 0 # jika ada isi folder-nya maka exit status-nya 0.
+    # write user input on file 'user-history.txt'
+    # with value Current Time, User Name, User IP, User Input & Filename
+    with open("user-history.txt", "a") as f:
+        f.write(f"{currentTime} {USER['name']} {USER['ip']} {userInput} {fileName}\n")
 
-def update_user_activity(activity, file_name, USER_DATA):
-    current_time = datetime.now().strftime("%d/%m/%Y %H:%M:%S")
-    with open("user_activity.file", "a") as f:
-        f.write(f"{current_time} {USER_DATA['name']} {USER_DATA['ip']} {activity} {file_name}\n")
+# create storage if server storage not exist
+if not os.path.exists("storage"):
+    os.makedirs("storage")
 
-# buat folder data apabila tidak ada.
-if not os.path.exists("data"): os.makedirs("data")
-
-# aktifkan server-nya.
+# turn on server.
 with SimpleXMLRPCServer((LOCAL_IP, PORT), allow_none=True) as server:
     print (f"Listening on port {PORT} with IP {LOCAL_IP}")
 
-    # register seluruh function yang ingin dipakai.
-    for func in [is_active, upload_file, download_file, get_dir_list]:
-        server.register_function(func)
+    # register functions that will be used.
+    for functions in [ handleUploadFile, handleDownloadFile, handleGetFiles ]:
+        server.register_function(functions)
 
     server.serve_forever()
