@@ -3,7 +3,7 @@ import xmlrpc.client, tkinter, socket, os
 from tkinter import filedialog, messagebox
 
 # init server ip and port
-SERVER_IP = "192.168.1.16"
+SERVER_IP = "26.247.36.164"
 PORT      = "8080"
 
 # init server proxy.
@@ -28,7 +28,8 @@ def handleUserInput():
     userInput = int(input(
         "--- Type the number of actions below --- \n"
         "1. Upload File \n"
-        "2. Download File \n"
+        "2. Download File \n"  
+        "3. Keluar \n"
         "Choose your action: "
     ))
 
@@ -164,8 +165,12 @@ def main():
         handleUploadFile()
 
     # else user input == 2, do download file
-    else:
+    elif(userInput == 2):
         handleDownloadFile()
+    #else sistem berhenti
+    else:
+        return exit()
+
 
 # run main program with infinite loop
 while True:
