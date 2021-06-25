@@ -25,6 +25,8 @@ def handleUserInput():
     # get user input
     # if user type '1' => Upload File
     # if user type '2' => Download File
+    # if user type '3' => Exit
+
     userInput = int(input(
         "--- Type the number of actions below --- \n"
         "1. Upload File \n"
