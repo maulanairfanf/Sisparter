@@ -21,6 +21,10 @@ USER = {
 
 # function to get user input
 def handleUserInput():
+
+    # get user input
+    # if user type '1' => Upload File
+    # if user type '2' => Download File
     userInput = int(input(
         "--- Type the number of actions below --- \n"
         "1. Upload File \n"
@@ -28,6 +32,7 @@ def handleUserInput():
         "Choose your action: "
     ))
 
+    # return user input
     return userInput
 
 # function upload file
@@ -53,12 +58,15 @@ def handleUploadFile():
             
             # try to upload file
             try:
+
                 # get response upload file from server 
                 response = SERVER.handleUploadFile(xmlrpc.client.Binary(file), fileName, USER)
 
                 # if response == 200, then print success to upload file
                 if response == 200:
                     print("Success to upload file")
+                
+                # if response == 400, then print failed to upload file
                 elif response == 400:
                     print('Failed to upload file, file already exist')
             
@@ -75,38 +83,55 @@ def handleDownloadFile():
     # separator
     print('\n')
     
-    # try to upload file.
+    # try to get files on server
     try:
+
+        # get response & files from server
         files, response = SERVER.handleGetFiles()
 
+        # if response == 200
         if (response == 200):
+
             print('--- Type the number of file below ---')
 
+            # loop files and print files
             for i in range(len(files)):
                 print(f"{i + 1}. {files[i]}")
             
+            # get user input to choose file
             inputUser = int(input('Choose file to download: '))
 
+            # get fileName
             fileName = files[inputUser - 1]
 
-            # coba untuk download file.
+            # try to download file.
             try:
+
+                # get file and response from server
                 file, response = SERVER.handleDownloadFile(fileName, USER)
 
                 # separator
                 print('\n')
                 
+                # if response == 200
                 if (response == 200):
-                    # get path folder dan gabungkan dengan nama file.
+
+                    # get directory folder
                     dirName = filedialog.askdirectory()
+
+                    # merge directory name and file name
                     path = os.path.join(dirName, fileName)
                     
-                    # simpan file.
+                    # open path
                     with open(path, "wb") as f:
+
+                        # save file
                         f.write(file.data)
                     
+                    # print success to download file
                     print('Success to download file')
                 
+                # print failed to download file
                 else:
                     print('Failed to download file, file is not found')
             
@@ -114,9 +139,11 @@ def handleDownloadFile():
             except:
                 print('Server Error')
 
+        # print storage empty
         else:
             print('server storage empty')
 
+    # exeption get files
     except:
         print('Server Error')
     
@@ -126,6 +153,7 @@ def handleDownloadFile():
 # function main program
 def main():
 
+    # withdraw tkinter main window
     tkinter.Tk().withdraw()
     
     # init user input
@@ -134,6 +162,7 @@ def main():
     # if user input == 1, do upload file
     if (userInput == 1):
         handleUploadFile()
+
     # else user input == 2, do download file
     else:
         handleDownloadFile()

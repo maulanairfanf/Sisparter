@@ -17,26 +17,31 @@ def handleUploadFile(file, fileName, USER):
         # update user input with status, filename and user
         userInput("Upload-File", fileName, USER)
 
-        # upload file to server.
+        # open storage and fileName.
         with open(os.path.join("storage", fileName), "wb") as f:
+
+            # write file data to upload
             f.write(file.data)
             
-            # exit with status 200 if upload success.
+            # send response status 200 if upload success.
             return 200
 
     # exit with status 400 if file exist.
     return 400
 
+# function get files
 def handleGetFiles():
 
     # get files on the server
     files = os.listdir("storage")
     
-    # if files is empty, exist with status 1 and return none
+    # if files is empty
     if len(files) == 0:
+        
+        # send response status 200 and return none
         return None, 400
     
-    # if files is exist, exit with status 0 and return files
+    # if files is exist, send response status 200 and return files
     return files, 200
 
 # function download file
@@ -48,37 +53,48 @@ def handleDownloadFile(fileName, USER):
         # update user input with status, filename and user
         userInput("Download-File", fileName, USER)
 
-        # change file to biner & return file to download
+        # open fileName in storage
         with open(os.path.join("storage", fileName), "rb") as f:
+
+            # read file
             file = f.read()
+
+            # convert file into binary
             file = xmlrpc.client.Binary(file)
             
-            # exit with status 0 if file exist & return file to download
+            # send response status 200 & return file
             return file, 200
     
-    # exit with status 1 if file is not exist and return none 
+    # send response status 400 if file is not exist and return none 
     return None, 400
 
 # function update user input
 def userInput(userInput, fileName, USER):
+
     # init current time with present
     currentTime = datetime.now().strftime("%d/%m/%Y %H:%M:%S")
 
     # write user input on file 'user-history.txt'
-    # with value Current Time, User Name, User IP, User Input & Filename
     with open("user-history.txt", "a") as f:
+
+        # write value Current Time, User Name, User IP, User Input & Filename, to 'user-history.txt'
         f.write(f"{currentTime} {USER['name']} {USER['ip']} {userInput} {fileName}\n")
 
-# create storage if server storage not exist
+# if server storage not exist
 if not os.path.exists("storage"):
+
+    # create storage
     os.makedirs("storage")
 
 # turn on server.
 with SimpleXMLRPCServer((LOCAL_IP, PORT), allow_none=True) as server:
+
+    # print port and local ip
     print (f"Listening on port {PORT} with IP {LOCAL_IP}")
 
     # register functions that will be used.
     for functions in [ handleUploadFile, handleDownloadFile, handleGetFiles ]:
         server.register_function(functions)
 
+    # serve server
     server.serve_forever()
